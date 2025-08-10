@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <title>AI Derivatives Signals</title>
+    <style>
+      body { font-family: -apple-system, system-ui, Helvetica, Arial, sans-serif; margin: 16px; }
+      .row { margin: 8px 0; }
+      input, select, button { font-size: 16px; padding: 8px; }
+      .card { border: 1px solid #eee; border-radius: 8px; padding: 12px; margin-top: 12px; }
+      .ok { color: #0a7; }
+      .warn { color: #d80; }
+      .bad { color: #d33; }
+      code { font-family: ui-monospace, Menlo, monospace; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <h2>AI Derivatives Signals</h2>
+    <div class="row">
+      <label>Symbol</label>
+      <input id="symbol" value="BTC/USDT" />
+    </div>
+    <div class="row">
+      <label>Timeframe</label>
+      <select id="tf">
+        <option>15m</option>
+        <option selected>1h</option>
+        <option>4h</option>
+        <option>1d</option>
+      </select>
+    </div>
+    <div class="row">
+      <button id="fetch">Fetch Signal</button>
+    </div>
+    <div id="out" class="card"></div>
+
+    <script>
+      async function fetchSignal() {
+        const symbol = document.getElementById('symbol').value;
+        const tf = document.getElementById('tf').value;
+        const url = `/signal?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(tf)}&limit=500`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const dir = data.direction || 'none';
+        const conf = (data.confidence ?? 0).toFixed(2);
+        const cls = dir === 'long' ? 'ok' : (dir === 'short' ? 'bad' : 'warn');
+        document.getElementById('out').innerHTML = `
+          <div><b>Symbol:</b> ${data.symbol}</div>
+          <div><b>Timestamp:</b> ${data.timestamp}</div>
+          <div><b>Direction:</b> <span class="${cls}">${dir}</span> (conf ${conf})</div>
+          <div><b>Entry:</b> ${data.entry}</div>
+          <div><b>Stop:</b> ${data.stop ?? '-'} | <b>TP:</b> ${data.take_profit ?? '-'}</div>
+          <div><b>Context:</b></div>
+          <code>${JSON.stringify(data.context, null, 2)}</code>
+        `;
+      }
+      document.getElementById('fetch').addEventListener('click', fetchSignal);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+.env
+*.ipynb_checkpoints
+
+# Data/Cache
+.cache/
+*.csv
+*.parquet
