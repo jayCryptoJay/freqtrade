@@ -1,0 +1,9 @@
+pandas==2.2.2
+numpy==1.26.4
+ccxt==4.4.36
+pandas-ta==0.3.14b0
+pydantic==2.7.4
+pydantic-settings==2.3.4
+tenacity==9.0.0
+python-dotenv==1.0.1
+rich==13.7.1
