@@ -1,5 +1,7 @@
 from __future__ import annotations
 import argparse
+import json
+from datetime import datetime
 from rich import print
 
 from src.config.settings import load_settings
@@ -10,10 +12,11 @@ from src.features.indicators import build_feature_frame
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run latest AI signal on a symbol/timeframe")
+    parser = argparse.ArgumentParser(description="Export signals to JSONL over the last N candles")
     parser.add_argument("--symbol", type=str, default=None)
     parser.add_argument("--timeframe", type=str, default=None)
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--out", type=str, default="signals.jsonl")
     args = parser.parse_args()
 
     settings = load_settings()
@@ -30,17 +33,23 @@ def main() -> None:
         htf_feats = build_feature_frame(htf_df)
         htf_row = htf_feats.iloc[-1]
 
-    signal = generate_latest_signal(symbol, df, htf_row=htf_row, target_rr=settings.target_rr, require_htf=settings.mtf_confirm)
-    print({
-        "timestamp": str(signal.timestamp),
-        "symbol": signal.symbol,
-        "direction": signal.direction,
-        "confidence": round(signal.confidence, 3),
-        "entry": signal.entry,
-        "stop": signal.stop,
-        "take_profit": signal.take_profit,
-        "context": signal.context,
-    })
+    with open(args.out, "w") as f:
+        for i in range(200, len(df)):
+            window = df.iloc[: i + 1]
+            sig = generate_latest_signal(symbol, window, htf_row=htf_row, target_rr=settings.target_rr, require_htf=settings.mtf_confirm)
+            rec = {
+                "timestamp": str(sig.timestamp),
+                "symbol": sig.symbol,
+                "direction": sig.direction,
+                "confidence": round(sig.confidence, 3),
+                "entry": sig.entry,
+                "stop": sig.stop,
+                "take_profit": sig.take_profit,
+                "context": sig.context,
+            }
+            f.write(json.dumps(rec) + "\n")
+
+    print(f"Wrote {len(df) - 200} signals to {args.out}")
 
 
 if __name__ == "__main__":

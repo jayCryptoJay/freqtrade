@@ -13,8 +13,11 @@ class Settings(BaseSettings):
     # Trading
     symbol: str = Field(default="BTC/USDT")
     timeframe: str = Field(default="1h")
+    htf_timeframe: Optional[str] = Field(default="4h", description="Higher timeframe for confirmation; set None to disable")
+    mtf_confirm: bool = Field(default=True, description="Require higher timeframe confirmation")
     leverage: int = Field(default=10)
     risk_per_trade: float = Field(default=0.01, description="Fraction of balance at risk per trade")
+    target_rr: float = Field(default=1.5, description="Target risk-reward multiple for TP")
 
     # Data
     data_limit: int = Field(default=750)

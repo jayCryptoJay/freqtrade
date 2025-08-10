@@ -40,6 +40,10 @@ def _compute_scores(row: pd.Series) -> tuple[int, int]:
     bull += int(row.get("is_accumulation", 0) == 1)
     bear += int(row.get("is_distribution", 0) == 1)
 
+    # Liquidity sweeps: grab-down favors long, grab-up favors short
+    bull += int(row.get("liq_grab_down", 0) == 1)
+    bear += int(row.get("liq_grab_up", 0) == 1)
+
     # Demand/Supply interaction
     price = row["close"]
     demand_low = row.get("demand_low", np.nan)
@@ -69,11 +73,28 @@ def _risk_targets(row: pd.Series, swing_low: float | None, swing_high: float | N
     )
 
 
-def generate_latest_signal(symbol: str, df: pd.DataFrame) -> Signal:
+def generate_latest_signal(symbol: str, df: pd.DataFrame, htf_row: pd.Series | None = None, target_rr: float = 1.5, require_htf: bool = False) -> Signal:
     feats = build_feature_frame(df)
     row = feats.iloc[-1]
 
+    # HTF confirmation logic if provided
+    if require_htf and htf_row is not None:
+        # If HTF is bearish trend and distribution, avoid longs; vice versa
+        if int(htf_row.get("above_ema200", 1)) == 0 and int(htf_row.get("is_distribution", 0)) == 1:
+            row["htf_bias"] = -1
+        elif int(htf_row.get("above_ema200", 0)) == 1 and int(htf_row.get("is_accumulation", 0)) == 1:
+            row["htf_bias"] = 1
+        else:
+            row["htf_bias"] = 0
+    else:
+        row["htf_bias"] = 0
+
     bull, bear = _compute_scores(row)
+
+    # Apply HTF bias softly
+    bull += int(row["htf_bias"] == 1)
+    bear += int(row["htf_bias"] == -1)
+
     total = bull + bear if (bull + bear) > 0 else 1
 
     direction: Optional[str]
@@ -87,7 +108,7 @@ def generate_latest_signal(symbol: str, df: pd.DataFrame) -> Signal:
     confidence = max(bull, bear) / (total * 1.0)
 
     swing_low, swing_high = last_swing_levels(feats)
-    (long_stop, long_tp), (short_stop, short_tp) = _risk_targets(row, swing_low, swing_high)
+    (long_stop, long_tp), (short_stop, short_tp) = _risk_targets(row, swing_low, swing_high, rr=target_rr)
 
     if direction == "long":
         stop = long_stop
@@ -110,6 +131,9 @@ def generate_latest_signal(symbol: str, df: pd.DataFrame) -> Signal:
         "bos_down": int(row.get("bos_down", 0)),
         "is_accumulation": int(row.get("is_accumulation", 0)),
         "is_distribution": int(row.get("is_distribution", 0)),
+        "liq_grab_up": int(row.get("liq_grab_up", 0)),
+        "liq_grab_down": int(row.get("liq_grab_down", 0)),
+        "htf_bias": int(row.get("htf_bias", 0)),
     }
 
     return Signal(

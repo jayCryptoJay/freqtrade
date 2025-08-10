@@ -136,11 +136,49 @@ def _wyckoff_heuristics(df: pd.DataFrame, window: int = 60) -> pd.DataFrame:
     return out
 
 
+def _liquidity_sweeps(df: pd.DataFrame, lookback: int = 10) -> pd.DataFrame:
+    out = df.copy()
+    prev_high = out["high"].shift(1)
+    prev_low = out["low"].shift(1)
+    ran_previous_high = out["high"] > prev_high.rolling(lookback).max()
+    closed_below_prev_high = out["close"] < prev_high
+    liquidity_grab_up = (ran_previous_high & closed_below_prev_high).astype(int)
+
+    ran_previous_low = out["low"] < prev_low.rolling(lookback).min()
+    closed_above_prev_low = out["close"] > prev_low
+    liquidity_grab_down = (ran_previous_low & closed_above_prev_low).astype(int)
+
+    out["liq_grab_up"] = liquidity_grab_up
+    out["liq_grab_down"] = liquidity_grab_down
+    return out
+
+
+def with_liquidity_context(df: pd.DataFrame) -> pd.DataFrame:
+    out = _liquidity_sweeps(df, lookback=10)
+    return out
+
+
+def compute_htf_context(lf: pd.DataFrame, hf: pd.DataFrame) -> pd.DataFrame:
+    # Use last HTF row to tag LTF slice
+    hf_feats = build_feature_frame(hf)
+    last = hf_feats.iloc[-1]
+    context_cols = [
+        "above_ema50", "above_ema200", "is_accumulation", "is_distribution", "bos_up", "bos_down"
+    ]
+    tagged = lf.copy()
+    for c in context_cols:
+        tagged[f"htf_{c}"] = int(last.get(c, 0))
+    tagged["htf_range_low"] = float(last.get("range_low", np.nan))
+    tagged["htf_range_high"] = float(last.get("range_high", np.nan))
+    return tagged
+
+
 def build_feature_frame(df: pd.DataFrame) -> pd.DataFrame:
     out = _ensure_indicators(df)
     out = _swing_points(out, lookback=5)
     out = _order_blocks(out, lookback=20)
     out = _wyckoff_heuristics(out, window=60)
+    out = with_liquidity_context(out)
 
     # Trend context
     out["above_ema50"] = (out["close"] > out["ema50"]).astype(int)

@@ -21,26 +21,24 @@ class Position:
     tp: float = 0.0
 
 
-def backtest(df: pd.DataFrame, symbol: str) -> dict:
-    feats = build_feature_frame(df)
-
+def backtest(df: pd.DataFrame, symbol: str, htf_row: pd.Series | None, target_rr: float, require_htf: bool) -> dict:
     balance = 10000.0
     risk_per_trade = 0.01
     fee = 0.0004  # taker fee approx
 
     position = Position()
     equity_curve = []
+    trades = 0
 
     for i in range(200, len(df)):
         window = df.iloc[: i + 1]
-        sig = generate_latest_signal(symbol, window)
+        sig = generate_latest_signal(symbol, window, htf_row=htf_row, target_rr=target_rr, require_htf=require_htf)
         price = float(window["close"].iloc[-1])
 
         # Exit rules
         if position.side is not None:
             if position.side == "long":
                 if price <= position.stop or price >= position.tp:
-                    # Close
                     pnl = (price - position.entry) / position.entry
                     balance *= 1 + pnl - fee
                     position = Position()
@@ -52,11 +50,10 @@ def backtest(df: pd.DataFrame, symbol: str) -> dict:
 
         # Entry rules: switch only if flat and strong signal
         if position.side is None and sig.direction is not None and sig.confidence >= 0.6 and sig.stop and sig.take_profit:
-            risk_amount = balance * risk_per_trade
             stop_distance = abs(sig.entry - sig.stop)
             if stop_distance > 0 and stop_distance / sig.entry < 0.05:  # avoid absurd stops
-                position = Position(side=sig.direction, entry=sig.entry, stop=sig.stop, tp=sig.take_profit)
-                balance -= risk_amount * 0.0  # placeholder to reserve risk if desired
+                position = Position(side=sig.direction, entry=sig.entry, stop=sig.take_profit if sig.direction == "short" else sig.stop, tp=sig.stop if sig.direction == "short" else sig.take_profit)
+                trades += 1
 
         equity_curve.append(balance)
 
@@ -67,7 +64,7 @@ def backtest(df: pd.DataFrame, symbol: str) -> dict:
         "final_balance": balance,
         "return_pct": (balance / 10000.0 - 1.0) * 100,
         "sharpe": sharpe,
-        "trades": sum(1 for _ in filter(lambda e: e is not None, [])),
+        "trades": trades,
     }
 
 
@@ -86,7 +83,13 @@ def main() -> None:
     ex = create_exchange(settings.exchange_id, settings.api_key, settings.api_secret, settings.exchange_sandbox)
     df = fetch_ohlcv_dataframe(ex, symbol, timeframe, limit=limit)
 
-    res = backtest(df, symbol)
+    htf_row = None
+    if settings.mtf_confirm and settings.htf_timeframe:
+        htf_df = fetch_ohlcv_dataframe(ex, symbol, settings.htf_timeframe, limit=min(500, limit))
+        htf_feats = build_feature_frame(htf_df)
+        htf_row = htf_feats.iloc[-1]
+
+    res = backtest(df, symbol, htf_row=htf_row, target_rr=settings.target_rr, require_htf=settings.mtf_confirm)
     print(res)
 
 
