@@ -1,0 +1,100 @@
+[
+    {
+        "lessonNumber": 1,
+        "title": "What is AI & How Can It Help You?",
+        "goal": "Understand what AI is in plain language and how it can make everyday life easier.",
+        "steps": [
+            "AI means 'artificial intelligence' \u2014 a tool that can understand and answer questions, write, and help with tasks.",
+            "Think of it as a helpful assistant that\u2019s always available.",
+            "You can talk to it by typing or speaking, just like you would to a person.",
+            "AI can help with reminders, writing letters, finding recipes, and more.",
+            "You stay in control \u2014 it only does what you ask it to."
+        ],
+        "practicePrompt": "Write a short \u2018thinking of you\u2019 note to my friend Mary.",
+        "safetyTip": "Never give AI your Social Security number, bank account info, or passwords."
+    },
+    {
+        "lessonNumber": 2,
+        "title": "Making Video Calls",
+        "goal": "Learn how to connect with friends and family through live video.",
+        "steps": [
+            "Make sure your device has a camera and microphone.",
+            "Install or open a video call app (e.g., FaceTime, Zoom, WhatsApp).",
+            "Add the person\u2019s name or phone/email to your contact list.",
+            "Click their name, then click the camera icon to start the call.",
+            "Speak clearly and enjoy seeing them!"
+        ],
+        "practicePrompt": "Call my granddaughter using FaceTime.",
+        "safetyTip": "Only accept video calls from people you know and trust."
+    },
+    {
+        "lessonNumber": 3,
+        "title": "Writing Letters & Cards with AI",
+        "goal": "Use AI to help write warm, personal messages.",
+        "steps": [
+            "Open your AI chat app.",
+            "Tell it who the message is for and what you want to say.",
+            "Ask it to make the message friendly and personal.",
+            "Copy or write down the text AI gives you.",
+            "Add it to your letter, card, or email."
+        ],
+        "practicePrompt": "Write a friendly holiday card for my neighbor named Susan, thanking her for the cookies she baked.",
+        "safetyTip": "Never share your home address in online messages unless you know the person personally."
+    },
+    {
+        "lessonNumber": 4,
+        "title": "Organizing & Sharing Photos",
+        "goal": "Keep your favorite pictures easy to find and share.",
+        "steps": [
+            "Open your photo gallery or app.",
+            "Create folders or albums for events (e.g., 'Family,' 'Vacations').",
+            "Add names or short notes to each photo.",
+            "Use 'Share' to send a photo to a friend or family member.",
+            "Ask AI for tips on labeling or organizing your albums."
+        ],
+        "practicePrompt": "Help me name and organize my trip photos into albums.",
+        "safetyTip": "Avoid posting photos that show your address, license plates, or personal documents."
+    },
+    {
+        "lessonNumber": 5,
+        "title": "Setting Reminders & Calendar Events",
+        "goal": "Never forget important dates or tasks.",
+        "steps": [
+            "Open your phone\u2019s reminder or calendar app.",
+            "Tap 'Add' or '+' to create a new reminder/event.",
+            "Type the task or event name.",
+            "Choose a date and time to be alerted.",
+            "Save it, and your device will remind you."
+        ],
+        "practicePrompt": "Set a reminder for my doctor\u2019s appointment next Thursday at 3 PM.",
+        "safetyTip": "Do not post your full schedule online for everyone to see."
+    },
+    {
+        "lessonNumber": 6,
+        "title": "Spotting Scams & Staying Safe Online",
+        "goal": "Recognize and avoid online and phone scams.",
+        "steps": [
+            "Be cautious of messages from unknown people.",
+            "Scammers often create urgency ('Act now!') to trick you.",
+            "Do not click links from unknown senders.",
+            "AI can help check if a message looks suspicious.",
+            "When in doubt, delete the message or call someone you trust."
+        ],
+        "practicePrompt": "Check if this email about winning a prize might be a scam.",
+        "safetyTip": "No legitimate company will ever ask for passwords or bank info by email or text."
+    },
+    {
+        "lessonNumber": 7,
+        "title": "Fun with AI: Hobbies & Entertainment",
+        "goal": "Use AI for enjoyment, hobbies, and mental stimulation.",
+        "steps": [
+            "Think of a hobby or interest you enjoy.",
+            "Ask AI to suggest ideas, activities, or tips.",
+            "Try AI-generated recipes, trivia questions, or gardening advice.",
+            "Use it to create short stories or poems.",
+            "Keep experimenting for fun!"
+        ],
+        "practicePrompt": "Give me 5 easy crossword clues about Florida beaches.",
+        "safetyTip": "Double-check any advice that involves your health, finances, or legal matters with a real professional."
+    }
+]
