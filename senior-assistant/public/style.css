@@ -82,6 +82,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Modal */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: grid; place-items: center; }
+.modal[hidden] { display: none !important; }
 .modal-card { background: var(--card); padding: 1rem; border-radius: 12px; width: min(720px, 92vw); }
 .modal-card form { display: grid; gap: 0.75rem; }
 .modal-actions { display: flex; justify-content: end; }
