@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: friendly-tech-coach
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: node server.js
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_CODE
+        value: letmein
