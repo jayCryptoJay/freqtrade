@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Friendly Tech Coach</title>
+	<link rel="stylesheet" href="/style.css" />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-6Ph8C8Y9Lc6Q8H6y2e6PsMc8R9XqF41uu7L8ba0L1m5ctb1AGvFvE3JJwdQpz5l7JqvHcuao3CwD1cF8P6FZNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+	<header class="app-header" role="banner">
+		<h1>Friendly Tech Coach</h1>
+		<div class="controls">
+			<button id="btn-start-plan" class="primary">Start My Plan</button>
+			<button id="btn-browse" class="secondary">Browse All Lessons</button>
+			<label class="voice-toggle" for="toggle-voice">
+				<input type="checkbox" id="toggle-voice" />
+				<span>Read Aloud</span>
+			</label>
+		</div>
+	</header>
+
+	<main id="main" class="container" role="main">
+		<section id="lesson-list" aria-label="Lesson List" hidden>
+			<h2>Lessons</h2>
+			<div id="lessons-grid" class="grid"></div>
+		</section>
+
+		<section id="player" aria-label="Lesson Player" hidden>
+			<div class="player-header">
+				<button id="btn-back" class="secondary">Back</button>
+				<h2 id="lesson-title">Lesson</h2>
+			</div>
+			<div id="safety-tip" class="safety" role="note" hidden></div>
+			<div id="step-text" class="step" aria-live="polite"></div>
+			<div id="practice" class="practice" aria-label="Practice Prompts" hidden>
+				<h3>Try this now</h3>
+				<ul id="practice-list"></ul>
+			</div>
+			<div class="player-controls">
+				<button id="btn-repeat" class="secondary">Repeat</button>
+				<button id="btn-next" class="primary">Next</button>
+			</div>
+			<div class="cheat">
+				<button id="btn-cheat" class="secondary">Download My Cheat Sheet (PDF)</button>
+			</div>
+		</section>
+	</main>
+
+	<!-- Onboarding dialog -->
+	<div id="onboarding" class="modal" role="dialog" aria-modal="true" hidden>
+		<div class="modal-card">
+			<h2>Let’s get you set up</h2>
+			<form id="onboarding-form">
+				<label>How comfortable are you with technology?
+					<select name="comfort" required>
+						<option value="beginner">I’m new</option>
+						<option value="intermediate">I’m okay</option>
+						<option value="advanced">I’m confident</option>
+					</select>
+				</label>
+				<label>Which device do you use most?
+					<select name="device" required>
+						<option value="phone">Phone</option>
+						<option value="tablet">Tablet</option>
+						<option value="computer">Computer</option>
+					</select>
+				</label>
+				<fieldset>
+					<legend>What would you like to do?</legend>
+					<label><input type="checkbox" name="goals" value="video-calls" /> Make video calls</label>
+					<label><input type="checkbox" name="goals" value="letters" /> Write letters and notes</label>
+					<label><input type="checkbox" name="goals" value="photos" /> Organize photos</label>
+					<label><input type="checkbox" name="goals" value="reminders" /> Use reminders & calendar</label>
+					<label><input type="checkbox" name="goals" value="safety" /> Stay safe online</label>
+					<label><input type="checkbox" name="goals" value="fun" /> Have fun with AI</label>
+				</fieldset>
+				<label class="voice-toggle">
+					<input type="checkbox" name="voice" /> Read lessons aloud
+				</label>
+				<div class="modal-actions">
+					<button type="submit" class="primary">Create My Plan</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<footer class="app-footer" role="contentinfo">
+		<small>Friendly Tech Coach • Be careful online: never share personal or financial information unless you started the conversation and you trust the website.</small>
+		<small><a href="/admin.html">Lesson Editor</a></small>
+	</footer>
+
+	<script type="module" src="/app.js"></script>
+</body>
+</html>
