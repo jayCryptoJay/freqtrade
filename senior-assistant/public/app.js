@@ -7,6 +7,10 @@ const state = {
 	preferences: null,
 };
 
+// Speech synthesis state
+let speechInitialized = false;
+let preferredVoice = null;
+
 const els = {
 	btnStartPlan: document.getElementById('btn-start-plan'),
 	btnBrowse: document.getElementById('btn-browse'),
@@ -31,6 +35,7 @@ async function init() {
 	await loadLessons();
 	loadPreferences();
 	setupHandlers();
+	primeSpeechOnGesture();
 	if (!state.preferences) {
 		showOnboarding();
 	} else {
@@ -74,6 +79,11 @@ function setupHandlers() {
 			state.preferences.voice = state.voiceEnabled;
 			savePreferences();
 		}
+		if (state.voiceEnabled) {
+			ensureSpeechReady().then(() => speak('Read aloud is on.'));
+		} else {
+			stopSpeaking();
+		}
 	});
 	els.btnBack.addEventListener('click', () => {
 		stopSpeaking();
@@ -101,14 +111,67 @@ function setupHandlers() {
 		savePreferences();
 		state.voiceEnabled = voice;
 		els.toggleVoice.checked = state.voiceEnabled;
+		// Hide onboarding reliably across browsers
 		els.onboarding.hidden = true;
+		els.onboarding.style.display = 'none';
 		buildPlan();
 		showPlanList();
 	});
 }
 
+function primeSpeechOnGesture() {
+	const once = () => {
+		ensureSpeechReady();
+		window.removeEventListener('touchend', once);
+		window.removeEventListener('click', once);
+	};
+	window.addEventListener('touchend', once, { once: true });
+	window.addEventListener('click', once, { once: true });
+}
+
+function ensureSpeechReady() {
+	return new Promise((resolve) => {
+		try {
+			const synth = window.speechSynthesis;
+			if (!synth) return resolve();
+			const pickVoice = () => {
+				const voices = synth.getVoices() || [];
+				preferredVoice = selectPreferredVoice(voices);
+				speechInitialized = true;
+				resolve();
+			};
+			if (synth.getVoices().length) {
+				pickVoice();
+			} else {
+				synth.onvoiceschanged = pickVoice;
+				try {
+					const u = new SpeechSynthesisUtterance(' ');
+					u.volume = 0;
+					synth.speak(u);
+					setTimeout(() => { if (!speechInitialized) pickVoice(); }, 300);
+				} catch {
+					resolve();
+				}
+			}
+		} catch {
+			resolve();
+		}
+	});
+}
+
+function selectPreferredVoice(voices) {
+	const preferredNames = ['Samantha', 'Karen', 'Tessa', 'Moira', 'Daniel', 'Alex', 'Google US English', 'Google UK English Female'];
+	for (const name of preferredNames) {
+		const v = voices.find(v => v && v.name && v.name.includes(name));
+		if (v) return v;
+	}
+	const en = voices.find(v => v && v.lang && v.lang.toLowerCase().startsWith('en'));
+	return en || voices[0] || null;
+}
+
 function showOnboarding() {
 	els.onboarding.hidden = false;
+	els.onboarding.style.display = '';
 }
 
 function renderHome() {
@@ -243,10 +306,14 @@ function endOfLesson() {
 
 function speak(text) {
 	try {
-		const utter = new SpeechSynthesisUtterance(text);
-		utter.rate = 0.95;
-		speechSynthesis.cancel();
-		speechSynthesis.speak(utter);
+		if (!('speechSynthesis' in window)) return;
+		ensureSpeechReady().then(() => {
+			const utter = new SpeechSynthesisUtterance(text);
+			utter.rate = 0.95;
+			if (preferredVoice) utter.voice = preferredVoice;
+			speechSynthesis.cancel();
+			speechSynthesis.speak(utter);
+		});
 	} catch {}
 }
 
