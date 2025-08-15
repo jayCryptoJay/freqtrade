@@ -1,0 +1,218 @@
+{
+  "lessons": [
+    {
+      "id": "intro-to-ai",
+      "title": "Intro to AI (Plain Language)",
+      "summary": "What AI is, what it can and cannot do, and how it can help you.",
+      "category": "Basics",
+      "level": "Beginner",
+      "estimatedMinutes": 8,
+      "steps": [
+        {
+          "id": "s1",
+          "text": "AI is like a helpful assistant on your device. It follows instructions to help with writing, answering questions, and organizing.",
+          "practicePrompts": ["What are three things you can help me with today?"],
+          "requiresInternet": false
+        },
+        {
+          "id": "s2",
+          "text": "AI does not have feelings. It gives answers based on patterns in information.",
+          "requiresInternet": false
+        },
+        {
+          "id": "s3",
+          "text": "You are in charge. You can ask AI to slow down, explain in simple words, or repeat steps.",
+          "practicePrompts": ["Explain email in simple words."]
+        },
+        {
+          "id": "s4",
+          "text": "Safety first: never share bank details, passwords, or ID numbers in chats.",
+          "requiresInternet": false,
+          "safetyTip": "Never share personal or financial information unless you started the conversation and you trust the website."
+        }
+      ],
+      "cheatSheet": {
+        "keyPoints": [
+          "AI is a tool that follows instructions.",
+          "Ask for simple explanations and repeats.",
+          "Do not share private information."
+        ],
+        "tryNow": [
+          "What can you help me do today?",
+          "Explain texting in simple words."
+        ]
+      }
+    },
+    {
+      "id": "video-calls",
+      "title": "How to Make Video Calls",
+      "summary": "Find a video calling app and call a friend.",
+      "category": "Communication",
+      "level": "Beginner",
+      "estimatedMinutes": 10,
+      "steps": [
+        {
+          "id": "s1",
+          "text": "Open your video call app (FaceTime, WhatsApp, Zoom, or similar).",
+          "requiresInternet": true,
+          "safetyTip": "Only accept calls from people you know."
+        },
+        {
+          "id": "s2",
+          "text": "Find your contact's name. Tap it to open their details.",
+          "requiresInternet": true
+        },
+        {
+          "id": "s3",
+          "text": "Tap the video camera button to start a video call.",
+          "requiresInternet": true
+        },
+        {
+          "id": "s4",
+          "text": "If the picture or sound is poor, move closer to your Wi‑Fi and speak clearly.",
+          "requiresInternet": true
+        }
+      ],
+      "cheatSheet": {
+        "keyPoints": [
+          "Open your preferred app and find the person.",
+          "Tap the camera icon to start a video call.",
+          "For problems, try Wi‑Fi and speak clearly."
+        ],
+        "tryNow": [
+          "Call a family member for a 1‑minute test call."
+        ]
+      }
+    },
+    {
+      "id": "holiday-letters",
+      "title": "Writing Holiday Letters with AI",
+      "summary": "Draft a warm holiday letter with AI's help.",
+      "category": "Writing",
+      "level": "Beginner",
+      "estimatedMinutes": 12,
+      "steps": [
+        {
+          "id": "s1",
+          "text": "Tell the AI who the letter is for and the occasion.",
+          "practicePrompts": ["Write a warm holiday letter to my neighbors, Pat and Alex."],
+          "requiresInternet": true,
+          "safetyTip": "Do not share addresses or private info."
+        },
+        {
+          "id": "s2",
+          "text": "Add a few notes: highlights of your year, family news, and a friendly wish.",
+          "practicePrompts": ["Include that I visited my sister in June and started a gardening club."]
+        },
+        {
+          "id": "s3",
+          "text": "Ask the AI to shorten or simplify the letter if you like.",
+          "practicePrompts": ["Make it 6 sentences in plain language."]
+        },
+        {
+          "id": "s4",
+          "text": "Copy the letter into your email or print it to mail.",
+          "requiresInternet": true
+        }
+      ],
+      "cheatSheet": {
+        "keyPoints": [
+          "Say who it is for and the occasion.",
+          "Share 2–3 highlights to include.",
+          "Ask to shorten or simplify."
+        ],
+        "tryNow": [
+          "Write a friendly two‑paragraph holiday note to my bridge group."
+        ]
+      }
+    },
+    {
+      "id": "organizing-photos",
+      "title": "Organizing Photos",
+      "summary": "Find, name, and organize photos on your device.",
+      "category": "Photos",
+      "level": "Beginner",
+      "estimatedMinutes": 10,
+      "steps": [
+        { "id": "s1", "text": "Open your Photos app.", "requiresInternet": false },
+        { "id": "s2", "text": "Create a new album named 'Family' or 'Trips'." },
+        { "id": "s3", "text": "Select photos and add them to the album." },
+        { "id": "s4", "text": "Search for 'dog', 'beach', or a month to quickly find pictures." }
+      ],
+      "cheatSheet": {
+        "keyPoints": ["Create albums by topic.", "Add photos to the right album.", "Use search words like 'dog' or 'June'."],
+        "tryNow": ["Make a 'Family' album and add 5 photos."]
+      }
+    },
+    {
+      "id": "reminders-and-calendar",
+      "title": "Setting Reminders & Calendars",
+      "summary": "Never miss an appointment again.",
+      "category": "Everyday",
+      "level": "Beginner",
+      "estimatedMinutes": 9,
+      "steps": [
+        { "id": "s1", "text": "Open your Reminders or Calendar app.", "requiresInternet": false },
+        { "id": "s2", "text": "Add a new reminder: 'Doctor on Tuesday at 2 PM'." },
+        { "id": "s3", "text": "Set an alert 1 day before and 1 hour before." },
+        { "id": "s4", "text": "Check today's list each morning." }
+      ],
+      "cheatSheet": {
+        "keyPoints": ["Add reminders with clear names.", "Use alerts so you get notified.", "Review your day each morning."],
+        "tryNow": ["Add 'Take a 10‑minute walk at 4 PM' with an alert."]
+      }
+    },
+    {
+      "id": "spotting-scams",
+      "title": "Spotting Scams & Staying Safe",
+      "summary": "Simple rules to keep you safe online.",
+      "category": "Safety",
+      "level": "Beginner",
+      "estimatedMinutes": 8,
+      "steps": [
+        { "id": "s1", "text": "Unexpected messages asking for money are likely scams.", "requiresInternet": true, "safetyTip": "Never send money or gift cards from a message or call you did not start." },
+        { "id": "s2", "text": "Do not share codes sent by text or email with anyone." },
+        { "id": "s3", "text": "Check the sender: official emails end with company names (like @bankname.com)." },
+        { "id": "s4", "text": "When unsure, ask a trusted family member before clicking links." }
+      ],
+      "cheatSheet": {
+        "keyPoints": ["If it feels rushed or threatening, stop.", "Never share verification codes.", "Ask family before clicking unusual links."],
+        "tryNow": ["Show me a checklist to spot scam emails."]
+      }
+    },
+    {
+      "id": "fun-with-ai",
+      "title": "Fun with AI (Recipes, Trivia, Hobbies)",
+      "summary": "Enjoy safe and simple activities with AI.",
+      "category": "Fun",
+      "level": "Beginner",
+      "estimatedMinutes": 10,
+      "steps": [
+        { "id": "s1", "text": "Ask for a simple recipe using what's in your fridge.", "practicePrompts": ["Give me a simple dinner using chicken, carrots, and rice."], "requiresInternet": true },
+        { "id": "s2", "text": "Try trivia or a joke for fun.", "practicePrompts": ["Tell me a light, family‑friendly joke."] },
+        { "id": "s3", "text": "Ask for hobby tips: gardening, crafts, or music.", "practicePrompts": ["Give me 3 beginner gardening tips."] }
+      ],
+      "cheatSheet": {
+        "keyPoints": ["Use AI for ideas and fun.", "Keep requests short and clear.", "Stay safe: no private info."],
+        "tryNow": ["Plan a 20‑minute fun activity with simple steps."]
+      }
+    },
+    {
+      "id": "voice-dictation",
+      "title": "Using Voice to Talk to Your Device",
+      "summary": "Turn on dictation and speak instead of typing.",
+      "category": "Accessibility",
+      "level": "Beginner",
+      "estimatedMinutes": 7,
+      "steps": [
+        { "id": "s1", "text": "Find the microphone button on your keyboard or app.", "requiresInternet": false },
+        { "id": "s2", "text": "Tap it and speak slowly and clearly.", "requiresInternet": false },
+        { "id": "s3", "text": "Say 'period' or 'comma' to add punctuation.", "requiresInternet": false }
+      ],
+      "cheatSheet": {
+        "keyPoints": ["Tap the microphone to start.", "Speak slowly.", "Say punctuation words if needed."],
+        "tryNow": ["Dictate a short note to yourself."]
+      }
+    }
+  ]
+}

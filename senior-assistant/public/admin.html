@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Lesson Editor • Friendly Tech Coach</title>
+	<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+	<header class="app-header">
+		<h1>Lesson Editor</h1>
+		<a href="/" class="secondary">Back to App</a>
+	</header>
+	<main class="container">
+		<section class="card">
+			<h2>Sign in</h2>
+			<label>Admin code <input id="admin-code" type="password" placeholder="Enter admin code" /></label>
+		</section>
+		<section class="card">
+			<h2>Lessons</h2>
+			<div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+				<select id="lesson-select"></select>
+				<button id="btn-new" class="secondary">New</button>
+				<button id="btn-delete" class="secondary">Delete</button>
+				<button id="btn-save" class="primary">Save Changes</button>
+			</div>
+		</section>
+		<section class="card">
+			<h2>Details</h2>
+			<label>Id <input id="lesson-id" /></label>
+			<label>Title <input id="lesson-title" /></label>
+			<label>Summary <input id="lesson-summary" /></label>
+			<label>Category <input id="lesson-category" /></label>
+			<label>Level
+				<select id="lesson-level">
+					<option>Beginner</option>
+					<option>Intermediate</option>
+					<option>Advanced</option>
+				</select>
+			</label>
+			<label>Estimated Minutes <input id="lesson-mins" type="number" min="1" value="8" /></label>
+		</section>
+		<section class="card">
+			<h2>Steps</h2>
+			<div id="steps"></div>
+			<button id="btn-add-step" class="secondary">Add Step</button>
+		</section>
+	</main>
+
+	<script type="module">
+		const adminCodeEl = document.getElementById('admin-code');
+		const selectEl = document.getElementById('lesson-select');
+		const stepsEl = document.getElementById('steps');
+		const fields = {
+			id: document.getElementById('lesson-id'),
+			title: document.getElementById('lesson-title'),
+			summary: document.getElementById('lesson-summary'),
+			category: document.getElementById('lesson-category'),
+			level: document.getElementById('lesson-level'),
+			mins: document.getElementById('lesson-mins')
+		};
+		const btns = {
+			new: document.getElementById('btn-new'),
+			delete: document.getElementById('btn-delete'),
+			save: document.getElementById('btn-save'),
+			addStep: document.getElementById('btn-add-step')
+		};
+
+		let lessons = [];
+		let current = null;
+
+		init();
+		async function init() {
+			await loadLessons();
+			fillSelect();
+			selectEl.addEventListener('change', onSelect);
+			btns.new.addEventListener('click', onNew);
+			btns.delete.addEventListener('click', onDelete);
+			btns.save.addEventListener('click', onSave);
+			btns.addStep.addEventListener('click', () => addStep());
+		}
+
+		async function loadLessons() {
+			const res = await fetch('/api/lessons');
+			const data = await res.json();
+			lessons = data.lessons || [];
+		}
+
+		function fillSelect() {
+			selectEl.innerHTML = '';
+			lessons.forEach(l => {
+				const o = document.createElement('option');
+				o.value = l.id; o.textContent = l.title; selectEl.appendChild(o);
+			});
+			if (lessons[0]) { selectEl.value = lessons[0].id; loadIntoForm(lessons[0]); }
+		}
+
+		function loadIntoForm(lesson) {
+			current = structuredClone(lesson);
+			fields.id.value = current.id;
+			fields.title.value = current.title || '';
+			fields.summary.value = current.summary || '';
+			fields.category.value = current.category || '';
+			fields.level.value = current.level || 'Beginner';
+			fields.mins.value = current.estimatedMinutes || 8;
+			renderSteps();
+		}
+
+		function renderSteps() {
+			stepsEl.innerHTML = '';
+			(current.steps || []).forEach((s, idx) => stepsEl.appendChild(stepRow(s, idx)));
+		}
+
+		function stepRow(step, idx) {
+			const wrap = document.createElement('div');
+			wrap.className = 'card';
+			wrap.innerHTML = `
+				<label>Text <textarea data-k="text" rows="3" style="width:100%"></textarea></label>
+				<label>Practice Prompts (one per line) <textarea data-k="practicePrompts" rows="2" style="width:100%"></textarea></label>
+				<label><input type="checkbox" data-k="requiresInternet" /> Requires Internet</label>
+				<label>Safety Tip <input data-k="safetyTip" /></label>
+				<button class="secondary" data-action="remove">Remove Step</button>
+			`;
+			wrap.querySelector('[data-k="text"]').value = step.text || '';
+			wrap.querySelector('[data-k="practicePrompts"]').value = (step.practicePrompts || []).join('\n');
+			wrap.querySelector('[data-k="requiresInternet"]').checked = !!step.requiresInternet;
+			wrap.querySelector('[data-k="safetyTip"]').value = step.safetyTip || '';
+			wrap.addEventListener('input', (e) => {
+				const k = e.target.getAttribute('data-k');
+				if (!k) return;
+				if (k === 'practicePrompts') {
+					step.practicePrompts = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
+				} else if (k === 'requiresInternet') {
+					step.requiresInternet = e.target.checked;
+				} else {
+					step[k] = e.target.value;
+				}
+			});
+			wrap.querySelector('[data-action="remove"]').addEventListener('click', () => {
+				current.steps.splice(idx, 1);
+				renderSteps();
+			});
+			return wrap;
+		}
+
+		function addStep() {
+			current.steps = current.steps || [];
+			current.steps.push({ id: `s${current.steps.length + 1}`, text: '' });
+			renderSteps();
+		}
+
+		function onSelect() {
+			const id = selectEl.value;
+			const l = lessons.find(x => x.id === id);
+			if (l) loadIntoForm(l);
+		}
+
+		function onNew() {
+			const id = prompt('New lesson id (use letters, numbers, and dashes):');
+			if (!id) return;
+			current = { id, title: 'New Lesson', summary: '', category: '', level: 'Beginner', estimatedMinutes: 5, steps: [], cheatSheet: { keyPoints: [], tryNow: [] } };
+			stepsEl.innerHTML = '';
+			fields.id.value = current.id;
+			fields.title.value = current.title;
+			fields.summary.value = '';
+			fields.category.value = '';
+			fields.level.value = 'Beginner';
+			fields.mins.value = 5;
+		}
+
+		async function onDelete() {
+			if (!current) return;
+			if (!confirm('Delete this lesson?')) return;
+			const res = await fetch(`/api/lessons/${encodeURIComponent(current.id)}`, { method: 'DELETE', headers: adminHeaders() });
+			if (!res.ok) { alert('Failed to delete'); return; }
+			await loadLessons();
+			fillSelect();
+			alert('Deleted');
+		}
+
+		async function onSave() {
+			if (!current) return;
+			// update from fields
+			current.id = fields.id.value.trim();
+			current.title = fields.title.value.trim();
+			current.summary = fields.summary.value.trim();
+			current.category = fields.category.value.trim();
+			current.level = fields.level.value;
+			current.estimatedMinutes = Number(fields.mins.value) || 5;
+			// ensure cheatSheet
+			current.cheatSheet = current.cheatSheet || { keyPoints: [], tryNow: [] };
+			const exists = lessons.some(l => l.id === current.id);
+			const method = exists ? 'PUT' : 'POST';
+			const url = exists ? `/api/lessons/${encodeURIComponent(current.id)}` : '/api/lessons';
+			const res = await fetch(url, { method, headers: { 'content-type': 'application/json', ...adminHeaders() }, body: JSON.stringify(current) });
+			if (!res.ok) { alert('Save failed'); return; }
+			await loadLessons();
+			fillSelect();
+			selectEl.value = current.id;
+			alert('Saved');
+		}
+
+		function adminHeaders() {
+			const code = adminCodeEl.value.trim();
+			return code ? { 'x-admin-code': code } : {};
+		}
+	</script>
+</body>
+</html>
