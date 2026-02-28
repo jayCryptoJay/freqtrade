@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workout-tracker-app"
+version = "0.1.0"
+description = "Simple workout tracker app with CLI and phone-friendly web UI"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+workout-tracker = "workout_tracker_app:main"
