@@ -1,14 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, asc
+from sqlalchemy import select, desc
 from pydantic import BaseModel
 from typing import Optional
-import json
 
-from ..models.database import get_db, Strategy, Backtest
+from ..models.database import get_db, Strategy, Backtest, StrategyVersion
 from ..engine.templates import TEMPLATES
 
 router = APIRouter(prefix="/api/strategies", tags=["strategies"])
+
+MAX_VERSIONS = 10
 
 
 class StrategyCreate(BaseModel):
@@ -37,29 +38,43 @@ def _strategy_to_dict(s: Strategy, best_backtest: Optional[Backtest] = None) -> 
         "created_at": s.created_at.isoformat(),
         "updated_at": s.updated_at.isoformat(),
         "best_backtest": {
-            "total_return": best_backtest.total_return,
-            "max_drawdown": best_backtest.max_drawdown,
-            "sharpe_ratio": best_backtest.sharpe_ratio,
-            "win_rate": best_backtest.win_rate,
-            "profit_factor": best_backtest.profit_factor,
-            "total_trades": best_backtest.total_trades,
+            **best_backtest.metrics_dict(),
             "timeframe": best_backtest.timeframe,
-            "equity_curve": best_backtest.equity_curve_data()[:100],  # snapshot
+            "symbol": best_backtest.symbol,
+            "equity_curve": best_backtest.equity_curve_data()[:100],
         } if best_backtest else None,
     }
+
+
+async def _snapshot_version(db: AsyncSession, strategy: Strategy, label: Optional[str] = None):
+    """Save current code as a new version, pruning to MAX_VERSIONS."""
+    # Count existing versions
+    cnt_result = await db.execute(
+        select(StrategyVersion).where(StrategyVersion.strategy_id == strategy.id)
+    )
+    existing = cnt_result.scalars().all()
+    next_num = max((v.version_number for v in existing), default=0) + 1
+
+    version = StrategyVersion(
+        strategy_id=strategy.id,
+        version_number=next_num,
+        code=strategy.code,
+        label=label,
+    )
+    db.add(version)
+
+    # Prune oldest if over limit
+    if len(existing) >= MAX_VERSIONS:
+        oldest = sorted(existing, key=lambda v: v.version_number)[0]
+        await db.delete(oldest)
 
 
 @router.get("/templates")
 async def get_templates():
     return [
-        {
-            "key": key,
-            "name": tmpl["name"],
-            "description": tmpl["description"],
-            "code": tmpl["code"],
-            "tags": tmpl["tags"],
-        }
-        for key, tmpl in TEMPLATES.items()
+        {"key": key, "name": t["name"], "description": t["description"],
+         "code": t["code"], "tags": t["tags"]}
+        for key, t in TEMPLATES.items()
     ]
 
 
@@ -73,13 +88,10 @@ async def list_strategies(
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Strategy)
-
     if favorites_only:
         query = query.where(Strategy.is_favorite == True)
-
     if tag:
         query = query.where(Strategy.tags.contains(tag))
-
     if search:
         query = query.where(
             Strategy.name.contains(search) | Strategy.description.contains(search)
@@ -88,21 +100,15 @@ async def list_strategies(
     result = await db.execute(query.order_by(desc(Strategy.created_at)))
     strategies = result.scalars().all()
 
-    # Fetch best backtests for each strategy
     response = []
     for s in strategies:
-        best_bt = None
-        if s.id:
-            bt_result = await db.execute(
-                select(Backtest)
-                .where(Backtest.strategy_id == s.id)
-                .order_by(desc(Backtest.sharpe_ratio))
-                .limit(1)
-            )
-            best_bt = bt_result.scalar_one_or_none()
+        bt_result = await db.execute(
+            select(Backtest).where(Backtest.strategy_id == s.id)
+            .order_by(desc(Backtest.sharpe_ratio)).limit(1)
+        )
+        best_bt = bt_result.scalar_one_or_none()
         response.append(_strategy_to_dict(s, best_bt))
 
-    # Sort by metric if needed (in Python since it joins)
     sort_map = {
         "sharpe_ratio": lambda x: (x["best_backtest"] or {}).get("sharpe_ratio") or 0,
         "win_rate": lambda x: (x["best_backtest"] or {}).get("win_rate") or 0,
@@ -118,14 +124,15 @@ async def list_strategies(
 @router.post("", status_code=201)
 async def create_strategy(data: StrategyCreate, db: AsyncSession = Depends(get_db)):
     strategy = Strategy(
-        name=data.name,
-        description=data.description,
-        code=data.code,
-        tags=data.tags,
+        name=data.name, description=data.description,
+        code=data.code, tags=data.tags,
     )
     db.add(strategy)
     await db.commit()
     await db.refresh(strategy)
+    # Save initial version
+    await _snapshot_version(db, strategy, label="Initial version")
+    await db.commit()
     return _strategy_to_dict(strategy)
 
 
@@ -137,13 +144,10 @@ async def get_strategy(strategy_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Strategy not found")
 
     bt_result = await db.execute(
-        select(Backtest)
-        .where(Backtest.strategy_id == strategy_id)
-        .order_by(desc(Backtest.sharpe_ratio))
-        .limit(1)
+        select(Backtest).where(Backtest.strategy_id == strategy_id)
+        .order_by(desc(Backtest.sharpe_ratio)).limit(1)
     )
-    best_bt = bt_result.scalar_one_or_none()
-    return _strategy_to_dict(strategy, best_bt)
+    return _strategy_to_dict(strategy, bt_result.scalar_one_or_none())
 
 
 @router.patch("/{strategy_id}")
@@ -152,6 +156,8 @@ async def update_strategy(strategy_id: int, data: StrategyUpdate, db: AsyncSessi
     strategy = result.scalar_one_or_none()
     if not strategy:
         raise HTTPException(status_code=404, detail="Strategy not found")
+
+    code_changed = data.code is not None and data.code != strategy.code
 
     if data.name is not None:
         strategy.name = data.name
@@ -163,6 +169,10 @@ async def update_strategy(strategy_id: int, data: StrategyUpdate, db: AsyncSessi
         strategy.tags = data.tags
     if data.is_favorite is not None:
         strategy.is_favorite = data.is_favorite
+
+    # Snapshot on code change
+    if code_changed:
+        await _snapshot_version(db, strategy)
 
     await db.commit()
     await db.refresh(strategy)
@@ -188,3 +198,48 @@ async def toggle_favorite(strategy_id: int, db: AsyncSession = Depends(get_db)):
     strategy.is_favorite = not strategy.is_favorite
     await db.commit()
     return {"is_favorite": strategy.is_favorite}
+
+
+# ── Version history ────────────────────────────────────────────────────────────
+
+@router.get("/{strategy_id}/versions")
+async def list_versions(strategy_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(StrategyVersion)
+        .where(StrategyVersion.strategy_id == strategy_id)
+        .order_by(desc(StrategyVersion.version_number))
+    )
+    versions = result.scalars().all()
+    return [
+        {
+            "id": v.id,
+            "version_number": v.version_number,
+            "label": v.label,
+            "code": v.code,
+            "created_at": v.created_at.isoformat(),
+        }
+        for v in versions
+    ]
+
+
+@router.post("/{strategy_id}/versions/{version_id}/restore")
+async def restore_version(strategy_id: int, version_id: int, db: AsyncSession = Depends(get_db)):
+    v_result = await db.execute(
+        select(StrategyVersion)
+        .where(StrategyVersion.id == version_id, StrategyVersion.strategy_id == strategy_id)
+    )
+    version = v_result.scalar_one_or_none()
+    if not version:
+        raise HTTPException(status_code=404, detail="Version not found")
+
+    s_result = await db.execute(select(Strategy).where(Strategy.id == strategy_id))
+    strategy = s_result.scalar_one_or_none()
+    if not strategy:
+        raise HTTPException(status_code=404, detail="Strategy not found")
+
+    # Snapshot current state before restore
+    await _snapshot_version(db, strategy, label=f"Before restore to v{version.version_number}")
+    strategy.code = version.code
+    await db.commit()
+    await db.refresh(strategy)
+    return {"message": f"Restored to version {version.version_number}", "code": strategy.code}
