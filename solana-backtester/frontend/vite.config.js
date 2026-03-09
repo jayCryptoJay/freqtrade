@@ -12,4 +12,17 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'editor': ['@uiw/react-codemirror', '@codemirror/lang-python', '@codemirror/theme-one-dark'],
+          'charts': ['recharts'],
+          'utils': ['axios', 'zustand', 'clsx', 'diff', 'react-hot-toast', 'lucide-react', 'react-swipeable'],
+        },
+      },
+    },
+  },
 })
