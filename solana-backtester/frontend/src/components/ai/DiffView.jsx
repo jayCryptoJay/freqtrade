@@ -9,9 +9,8 @@ export default function DiffView({ originalCode, newCode }) {
     let removed = 0
 
     for (const part of parts) {
-      const lineCount = part.count ?? part.value.split('\n').filter((_, i, arr) => i < arr.length - 1 || part.value.endsWith('\n')).length
-      if (part.added) added += lineCount
-      if (part.removed) removed += lineCount
+      if (part.added) added += part.count ?? 0
+      if (part.removed) removed += part.count ?? 0
     }
 
     return { chunks: parts, addedCount: added, removedCount: removed }
@@ -35,8 +34,8 @@ export default function DiffView({ originalCode, newCode }) {
       </div>
 
       {/* Diff body */}
-      <div className="overflow-auto max-h-[400px] scrollbar-thin">
-        <pre className="text-xs font-mono leading-relaxed">
+      <div className="overflow-auto max-h-[400px] scrollbar-thin overscroll-contain">
+        <pre className="text-xs font-mono leading-relaxed min-w-0">
           {chunks.map((part, partIndex) => {
             // Split the value into lines, preserving empty trailing entries carefully
             const raw = part.value
