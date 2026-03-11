@@ -127,6 +127,50 @@ solana-backtester/
         └── utils/               # Formatters
 ```
 
+## Deployment
+
+### Backend → Render.com (free tier)
+
+1. Go to [render.com](https://render.com) and sign up / log in
+2. Click **New → Blueprint** and connect this GitHub repo
+3. Render will detect `solana-backtester/render.yaml` automatically — this creates:
+   - A free PostgreSQL database
+   - A Python web service pointing at `solana-backtester/backend`
+4. After the service is created, go to its **Environment** tab and set:
+   ```
+   ANTHROPIC_API_KEY = sk-ant-your-key-here
+   ```
+5. Note your backend URL — it will look like `https://sol-backtester-api.onrender.com`
+
+> **Note:** Render's free tier spins down after 15 min of inactivity (first request takes ~30s to wake up). Upgrade to a paid plan to avoid cold starts.
+
+---
+
+### Frontend → Vercel
+
+1. Go to [vercel.com](https://vercel.com) and import this GitHub repo
+2. Set **Root Directory** to `solana-backtester/frontend`
+3. Under **Environment Variables**, add:
+   ```
+   VITE_API_URL = https://sol-backtester-api.onrender.com/api
+   ```
+   (replace with your actual Render backend URL from the step above)
+4. Click **Deploy**
+
+---
+
+### CORS — connect frontend ↔ backend
+
+After you know your Vercel URL (e.g. `https://my-app.vercel.app`), update the `CORS_ORIGINS` env var on Render:
+
+```
+CORS_ORIGINS = https://my-app.vercel.app
+```
+
+Until then, leaving it as `*` works fine for personal use.
+
+---
+
 ## API Endpoints
 
 | Method | Path | Description |
